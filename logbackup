@@ -40,6 +40,8 @@ for i in "${!LOGPATHS[@]}"; do
                 --server-side-encryption \
                 "$supposed_file" \
                 "${bucket_with_prefix}${supposed_file}"
+
+            rm "$(dirname "$logfile")/${supposed_file}"
         else
             echo "$supposed_file has already been uploaded to s3."
         fi
