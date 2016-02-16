@@ -22,14 +22,24 @@ source ~/.logbackup
 for i in "${!LOGPATHS[@]}"; do
     logpath="${LOGPATHS[$i]}"
     for logfile in `ls $logpath`; do
-        bucket_with_prefix="$BUCKET"/"${PREFIX[$i]}"/
+        bucket_with_prefix=s3://"$BUCKET"/"${PREFIX[$i]}"/
         logs_in_bucket=`s3cmd ls "$bucket_with_prefix"`
 
-        supposed_file="${logfile}.gpg"
+        supposed_file="$(basename "$logfile").gpg"
         echo "$logs_in_bucket" | grep "$supposed_file" > /dev/null
 
         if [ $? -ne 0 ]; then
             echo "Need to create and upload $supposed_file"
+
+            gpg --cipher-algo AES256 --symmetric --yes --batch \
+                --passphrase="$PASSPHRASE" "$logfile"
+
+            s3cmd put \
+                --acl-private \
+                --guess-mime-type \
+                --server-side-encryption \
+                "$supposed_file" \
+                "${bucket_with_prefix}${supposed_file}"
         else
             echo "$supposed_file has already been uploaded to s3."
         fi
