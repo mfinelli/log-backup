@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# Get local configuration
+source ~/.logbackup
