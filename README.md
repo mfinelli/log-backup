@@ -36,3 +36,8 @@ PREFIX=('app1' 'app2')
 # List your buckets with `s3cmd ls`.
 BUCKET="your-backup-bucket"
 ```
+
+## Usage
+
+Running the backup is easy! After configuring everything just run the
+`logbackup` script!
