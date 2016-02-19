@@ -19,6 +19,16 @@
 # Get local configuration
 source ~/.logbackup
 
+command -v s3cmd >/dev/null 2>&1 || { \
+    echo >&2 "S3cmd is not installed. Aborting!"; exit 1; \
+}
+
+# Make sure that s3cmd has been configured
+if [ ! -f ~/.s3cfg ]; then
+    echo >&2 "S3cmd has not been configured yet. Aborting!"
+    exit 2
+fi
+
 for i in "${!LOGPATHS[@]}"; do
     logpath="${LOGPATHS[$i]}"
 
