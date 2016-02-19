@@ -19,6 +19,26 @@
 # Get local configuration
 source ~/.logbackup
 
+if [[ -z ${PASSPHRASE+x} ]]; then
+    echo >&2 "You must configure an encryption password!"
+    exit 1
+fi
+
+if [[ ${#LOGPATHS[@]} -lt 1 ]]; then
+    echo >&2 "You must specify at least one path/pattern to backup!"
+    exit 1
+fi
+
+if [[ ${#LOGPATHS[@]} -ne ${#PREFIX[@]} ]]; then
+    echo >&2 "You don't have prefixes to match paths!"
+    exit 1
+fi
+
+if [[ -z "$BUCKET" ]]; then
+    echo >&2 "You must specify an s3 bucket for uploading!"
+    exit 1
+fi
+
 command -v s3cmd >/dev/null 2>&1 || { \
     echo >&2 "S3cmd is not installed. Aborting!"; exit 1; \
 }
