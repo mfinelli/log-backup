@@ -21,6 +21,12 @@ source ~/.logbackup
 
 for i in "${!LOGPATHS[@]}"; do
     logpath="${LOGPATHS[$i]}"
+
+    WORKDIR=$(mktemp -d) || { \
+        echo >&2 "Could not create temporary directory."; exit 1; \
+    }
+
+    cd "$WORKDIR"
     for logfile in `ls $logpath`; do
         bucket_with_prefix=s3://"$BUCKET"/"${PREFIX[$i]}"/
         logs_in_bucket=`s3cmd ls "$bucket_with_prefix"`
@@ -32,7 +38,9 @@ for i in "${!LOGPATHS[@]}"; do
             echo "Need to create and upload $supposed_file"
 
             gpg --cipher-algo AES256 --symmetric --yes --batch \
-                --passphrase="$PASSPHRASE" "$logfile"
+                --passphrase="$PASSPHRASE" \
+                --output "$WORKDIR/$(basename "$logfile").gpg" \
+                "$logfile"
 
             s3cmd put \
                 --acl-private \
@@ -41,9 +49,12 @@ for i in "${!LOGPATHS[@]}"; do
                 "$supposed_file" \
                 "${bucket_with_prefix}${supposed_file}"
 
-            rm "$(dirname "$logfile")/${supposed_file}"
+            rm "$supposed_file"
         else
             echo "$supposed_file has already been uploaded to s3."
         fi
     done
+
+    cd ../
+    rmdir "$(basename "$WORKDIR")"
 done
